@@ -16,6 +16,7 @@ CREATE POLICY "Allow uploads"
 ON storage.objects FOR INSERT
 WITH CHECK (
   bucket_id = 'only-diamonds'
+  AND auth.uid() IS NOT NULL
 );
 
 -- Allow users to update their own files
@@ -23,6 +24,7 @@ CREATE POLICY "Allow updates"
 ON storage.objects FOR UPDATE
 USING (
   bucket_id = 'only-diamonds'
+  AND auth.uid() IS NOT NULL
 );
 
 -- Allow users to delete their own files
@@ -30,6 +32,7 @@ CREATE POLICY "Allow deletes"
 ON storage.objects FOR DELETE
 USING (
   bucket_id = 'only-diamonds'
+  AND auth.uid() IS NOT NULL
 );
 
 -- Enable RLS

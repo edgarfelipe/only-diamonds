@@ -4,11 +4,10 @@ import toast from 'react-hot-toast';
 import { useNotificationStore } from './notificationStore';
 
 interface InteractionState {
-  likeProfile: (profileId: string, userId?: string, modelName?: string, modelPhone?: string) => Promise<void>;
+  likeProfile: (profileId: string, userId: string, modelName?: string, modelPhone?: string) => Promise<void>;
   unlikeProfile: (profileId: string, userId: string) => Promise<void>;
   favoriteProfile: (profileId: string, userId: string, modelName?: string, modelPhone?: string) => Promise<void>;
   unfavoriteProfile: (profileId: string, userId: string) => Promise<void>;
-  addProfileView: (profileId: string, userId?: string, modelName?: string, modelPhone?: string) => Promise<void>;
   getLikes: (profileId: string) => Promise<number>;
   getFavorites: (profileId: string) => Promise<number>;
   getViews: (profileId: string) => Promise<number>;
@@ -17,44 +16,42 @@ interface InteractionState {
 }
 
 export const useInteractionStore = create<InteractionState>((set) => ({
-  likeProfile: async (profileId: string, userId?: string, modelName?: string, modelPhone?: string) => {
+  likeProfile: async (profileId: string, userId: string, modelName?: string, modelPhone?: string) => {
     try {
-      if (userId) {
-        const { data: existingLike } = await supabase
-          .from('likes')
-          .select()
-          .eq('curtidor_id', userId)
-          .eq('curtido_id', profileId)
-          .single();
+      const { data: existingLike } = await supabase
+        .from('likes')
+        .select()
+        .eq('curtidor_id', userId)
+        .eq('curtido_id', profileId)
+        .single();
 
-        if (existingLike) {
-          throw new Error('Você já curtiu este perfil');
-        }
-
-        const { error } = await supabase
-          .from('likes')
-          .insert([
-            {
-              curtidor_id: userId,
-              curtido_id: profileId,
-              status: 'active'
-            }
-          ]);
-
-        if (error) throw error;
-        
-        // Send notification
-        if (modelName && modelPhone) {
-          await useNotificationStore.getState().sendNotification({
-            type: 'like',
-            modelName,
-            modelPhone,
-            userName: userId
-          });
-        }
-
-        toast.success('Perfil curtido!');
+      if (existingLike) {
+        throw new Error('Você já curtiu este perfil');
       }
+
+      const { error } = await supabase
+        .from('likes')
+        .insert([
+          {
+            curtidor_id: userId,
+            curtido_id: profileId,
+            status: 'active'
+          }
+        ]);
+
+      if (error) throw error;
+      
+      // Send notification only if we have model info
+      if (modelName && modelPhone) {
+        await useNotificationStore.getState().sendNotification({
+          type: 'like',
+          modelName,
+          modelPhone,
+          userName: userId
+        });
+      }
+
+      toast.success('Perfil curtido!');
     } catch (error: any) {
       console.error('Error liking profile:', error);
       toast.error(error.message || 'Erro ao curtir perfil');
@@ -92,7 +89,7 @@ export const useInteractionStore = create<InteractionState>((set) => ({
 
       if (error) throw error;
 
-      // Send notification
+      // Send notification only if we have model info
       if (modelName && modelPhone) {
         await useNotificationStore.getState().sendNotification({
           type: 'favorite',
@@ -124,34 +121,6 @@ export const useInteractionStore = create<InteractionState>((set) => ({
       console.error('Error unfavoriting profile:', error);
       toast.error('Erro ao remover dos favoritos');
       throw error;
-    }
-  },
-
-  addProfileView: async (profileId: string, userId?: string, modelName?: string, modelPhone?: string) => {
-    try {
-      const { error } = await supabase
-        .from('profile_views')
-        .insert([
-          {
-            profile_id: profileId,
-            viewer_id: userId || null,
-            viewed_at: new Date().toISOString()
-          }
-        ]);
-
-      if (error) throw error;
-
-      // Send notification
-      if (modelName && modelPhone) {
-        await useNotificationStore.getState().sendNotification({
-          type: 'view',
-          modelName,
-          modelPhone,
-          userName: userId
-        });
-      }
-    } catch (error) {
-      console.error('Error adding profile view:', error);
     }
   },
 
