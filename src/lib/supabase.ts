@@ -30,17 +30,26 @@ export const getPublicUrl = (bucket: string, path: string | null): string | null
   }
 };
 
-export const uploadFile = async (bucket: string, path: string, file: File): Promise<string> => {
+export const uploadFile = async (
+  bucket: string,
+  userId: string,
+  file: File,
+  type: 'photo' | 'video' | 'document'
+): Promise<string> => {
   try {
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `${type}s/${userId}/${fileName}`;
+
     const { error: uploadError } = await supabase.storage
       .from(bucket)
-      .upload(path, file, {
+      .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: true
+        upsert: false
       });
 
     if (uploadError) throw uploadError;
-    return path;
+    return filePath;
   } catch (error) {
     console.error('Error uploading file:', error);
     throw error;
@@ -56,6 +65,24 @@ export const deleteFile = async (bucket: string, path: string): Promise<void> =>
     if (error) throw error;
   } catch (error) {
     console.error('Error deleting file:', error);
+    throw error;
+  }
+};
+
+export const updateUserFiles = async (
+  userId: string,
+  field: 'foto_perfil' | 'fotos' | 'videos' | 'documento',
+  paths: string | string[]
+): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('users')
+      .update({ [field]: paths })
+      .eq('id', userId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error updating user files:', error);
     throw error;
   }
 };

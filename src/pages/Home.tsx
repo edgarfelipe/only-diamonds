@@ -30,9 +30,23 @@ export default function Home() {
 
   const loadModelProfiles = async () => {
     try {
+      // Check if user is already logged in as a model
+      const authData = localStorage.getItem('auth-storage');
+      if (authData) {
+        try {
+          const { state } = JSON.parse(authData);
+          if (state?.user?.role === 'model') {
+            window.location.href = '/profile';
+            return;
+          }
+        } catch (error) {
+          console.error('Error parsing auth data:', error);
+        }
+      }
+
       const { data, error } = await supabase
         .from('users')
-        .select('*')
+        .select('id, nome, idade, localizacao, bio, foto_perfil, fotos, whatsapp, altura, medidas, atende, horario, idiomas')
         .eq('role', 'model')
         .eq('status', 'approved')
         .eq('genero', 'female');
