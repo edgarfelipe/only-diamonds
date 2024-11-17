@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import Header from '../components/Header';
 import ProfileCard from '../components/ProfileCard';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ModelProfile {
   id: string;
@@ -86,28 +85,6 @@ export default function Home() {
                 hasPrevious={currentProfile > 0}
               />
             )}
-
-            {/* Navigation Controls */}
-            <div className="fixed inset-x-0 top-1/2 -translate-y-1/2 pointer-events-none" style={{ zIndex: 1000 }}>
-              <div className="container max-w-6xl mx-auto px-4 flex justify-between pointer-events-none">
-                {currentProfile > 0 && (
-                  <button
-                    onClick={handlePrevious}
-                    className="pointer-events-auto p-4 bg-black/50 rounded-full text-white hover:bg-black/70 transition transform hover:scale-105"
-                  >
-                    <ChevronLeft className="w-8 h-8" />
-                  </button>
-                )}
-                {currentProfile < modelProfiles.length - 1 && (
-                  <button
-                    onClick={handleNext}
-                    className="pointer-events-auto p-4 bg-black/50 rounded-full text-white hover:bg-black/70 transition transform hover:scale-105 ml-auto"
-                  >
-                    <ChevronRight className="w-8 h-8" />
-                  </button>
-                )}
-              </div>
-            </div>
 
             {currentProfile >= modelProfiles.length && (
               <div className="text-center py-12">

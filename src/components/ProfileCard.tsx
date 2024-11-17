@@ -123,7 +123,7 @@ export default function ProfileCard({
                       e.stopPropagation();
                       onPrevious();
                     }}
-                    className="p-3 rounded-full bg-white/10 text-white hover:bg-gold-400 hover:text-luxury-950 transition absolute left-2 top-1/2 transform -translate-y-1/2"
+                    className="p-3 rounded-full bg-white/10 text-white hover:bg-gold-400 hover:text-luxury-950 transition"
                   >
                     <ChevronLeft className="w-6 h-6" />
                   </button>
@@ -144,7 +144,7 @@ export default function ProfileCard({
                       e.stopPropagation();
                       onLike();
                     }}
-                    className="p-3 rounded-full bg-white/10 text-white hover:bg-gold-400 hover:text-luxury-950 transition absolute right-2 top-1/2 transform -translate-y-1/2"
+                    className="p-3 rounded-full bg-white/10 text-white hover:bg-gold-400 hover:text-luxury-950 transition"
                   >
                     <ChevronRight className="w-6 h-6" />
                   </button>
