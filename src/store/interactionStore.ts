@@ -1,12 +1,11 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { useNotificationStore } from './notificationStore';
 
 interface InteractionState {
-  likeProfile: (profileId: string, userId: string, modelName?: string, modelPhone?: string) => Promise<void>;
+  likeProfile: (profileId: string, userId: string) => Promise<void>;
   unlikeProfile: (profileId: string, userId: string) => Promise<void>;
-  favoriteProfile: (profileId: string, userId: string, modelName?: string, modelPhone?: string) => Promise<void>;
+  favoriteProfile: (profileId: string, userId: string) => Promise<void>;
   unfavoriteProfile: (profileId: string, userId: string) => Promise<void>;
   getLikes: (profileId: string) => Promise<number>;
   getFavorites: (profileId: string) => Promise<number>;
@@ -16,7 +15,7 @@ interface InteractionState {
 }
 
 export const useInteractionStore = create<InteractionState>((set) => ({
-  likeProfile: async (profileId: string, userId: string, modelName?: string, modelPhone?: string) => {
+  likeProfile: async (profileId: string, userId: string) => {
     try {
       const { data: existingLike } = await supabase
         .from('likes')
@@ -40,17 +39,6 @@ export const useInteractionStore = create<InteractionState>((set) => ({
         ]);
 
       if (error) throw error;
-      
-      // Send notification only if we have model info
-      if (modelName && modelPhone) {
-        await useNotificationStore.getState().sendNotification({
-          type: 'like',
-          modelName,
-          modelPhone,
-          userName: userId
-        });
-      }
-
       toast.success('Perfil curtido!');
     } catch (error: any) {
       console.error('Error liking profile:', error);
@@ -76,7 +64,7 @@ export const useInteractionStore = create<InteractionState>((set) => ({
     }
   },
 
-  favoriteProfile: async (profileId: string, userId: string, modelName?: string, modelPhone?: string) => {
+  favoriteProfile: async (profileId: string, userId: string) => {
     try {
       const { error } = await supabase
         .from('favorites')
@@ -88,17 +76,6 @@ export const useInteractionStore = create<InteractionState>((set) => ({
         ]);
 
       if (error) throw error;
-
-      // Send notification only if we have model info
-      if (modelName && modelPhone) {
-        await useNotificationStore.getState().sendNotification({
-          type: 'favorite',
-          modelName,
-          modelPhone,
-          userName: userId
-        });
-      }
-
       toast.success('Adicionado aos favoritos!');
     } catch (error) {
       console.error('Error favoriting profile:', error);

@@ -1,18 +1,32 @@
--- Add policies for profile_views
-ALTER TABLE profile_views ENABLE ROW LEVEL SECURITY;
+-- Enable RLS
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "public_insert_profile_views"
-ON profile_views FOR INSERT
-WITH CHECK (true);
-
-CREATE POLICY "read_own_profile_views"
-ON profile_views FOR SELECT
+-- Allow public read access to approved models
+CREATE POLICY "Public read access to approved models"
+ON users FOR SELECT
 USING (
-  auth.uid() = profile_id OR 
-  auth.uid() = viewer_id OR
-  EXISTS (
-    SELECT 1 FROM users 
-    WHERE id = auth.uid() 
-    AND role = 'admin'
-  )
+  status = 'approved' AND 
+  role = 'model'
+);
+
+-- Allow users to update their own profile
+CREATE POLICY "Users can update own profile"
+ON users FOR UPDATE
+USING (auth.uid() = id)
+WITH CHECK (auth.uid() = id);
+
+-- Allow public insert for registration
+CREATE POLICY "Allow public registration"
+ON users FOR INSERT
+WITH CHECK (
+  role IN ('user', 'model', 'admin')
+);
+
+-- Allow admin operations
+CREATE POLICY "Admin operations"
+ON users
+FOR ALL
+USING (
+  email = 'admin@onlydiamonds.com' OR
+  role = 'admin'
 );

@@ -5,6 +5,7 @@ interface NotificationPayload {
   type: 'like' | 'view' | 'favorite' | 'whatsapp';
   modelName: string;
   modelPhone: string;
+  countryCode?: string;
   userName?: string;
 }
 
@@ -18,27 +19,23 @@ const RETRY_DELAY = 1000; // 1 second
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-const formatPhoneNumber = (phone: string): string | null => {
+const formatPhoneNumber = (phone: string, countryCode?: string): string | null => {
   try {
     // Remove all non-numeric characters
     const cleaned = phone.replace(/\D/g, '');
     
     // Basic validation
-    if (cleaned.length < 10 || cleaned.length > 13) {
+    if (cleaned.length < 8 || cleaned.length > 15) {
       return null;
     }
     
-    // Add country code if missing
-    if (cleaned.length === 11 || cleaned.length === 10) {
-      return `55${cleaned}`;
+    // Use provided country code or default to international format
+    if (countryCode) {
+      return `${countryCode}${cleaned}`;
     }
     
-    // If already has country code
-    if (cleaned.length === 12 || cleaned.length === 13) {
-      return cleaned;
-    }
-    
-    return null;
+    // If no country code provided, assume number is complete
+    return cleaned;
   } catch (error) {
     return null;
   }
@@ -53,7 +50,7 @@ const validateNotificationData = (data: NotificationPayload): void => {
     throw new Error('Telefone é obrigatório');
   }
 
-  const formattedPhone = formatPhoneNumber(data.modelPhone);
+  const formattedPhone = formatPhoneNumber(data.modelPhone, data.countryCode);
   if (!formattedPhone) {
     throw new Error('Número de telefone inválido');
   }
@@ -68,7 +65,7 @@ export const useNotificationStore = create<NotificationState>(() => ({
         // Validate data before attempting notification
         validateNotificationData(data);
         
-        const formattedPhone = formatPhoneNumber(data.modelPhone);
+        const formattedPhone = formatPhoneNumber(data.modelPhone, data.countryCode);
         if (!formattedPhone) {
           throw new Error('Número de telefone inválido');
         }
@@ -109,7 +106,7 @@ export const useNotificationStore = create<NotificationState>(() => ({
     try {
       // Skip notification for view events if phone is invalid
       if (data.type === 'view') {
-        const formattedPhone = formatPhoneNumber(data.modelPhone);
+        const formattedPhone = formatPhoneNumber(data.modelPhone, data.countryCode);
         if (!formattedPhone) {
           return; // Silently skip invalid phone numbers for view events
         }
@@ -119,7 +116,7 @@ export const useNotificationStore = create<NotificationState>(() => ({
 
       // Only show success toast for whatsapp notifications
       if (data.type === 'whatsapp') {
-        const formattedPhone = formatPhoneNumber(data.modelPhone);
+        const formattedPhone = formatPhoneNumber(data.modelPhone, data.countryCode);
         if (formattedPhone) {
           const whatsappUrl = `https://wa.me/${formattedPhone}`;
           window.open(whatsappUrl, '_blank');

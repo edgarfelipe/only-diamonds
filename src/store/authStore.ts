@@ -46,27 +46,26 @@ export const useAuthStore = create<AuthState>()(
         try {
           const hashedPassword = hashPassword(password);
           
-          const { data, error } = await supabase
+          const { data: user, error } = await supabase
             .from('users')
             .select('*')
             .eq('email', email.toLowerCase())
             .eq('senha', hashedPassword)
             .single();
 
-          if (error || !data) {
+          if (error || !user) {
             throw new Error('Email ou senha incorretos');
           }
 
-          // Create a session in Supabase auth
-          const { error: authError } = await supabase.auth.signInWithPassword({
-            email: email.toLowerCase(),
-            password: hashedPassword,
-          });
-
-          if (authError) throw authError;
-
-          set({ user: data });
+          set({ user });
           toast.success('Login realizado com sucesso!');
+
+          // Handle redirects based on role
+          if (user.role === 'model') {
+            window.location.href = '/profile';
+          } else if (user.role === 'admin') {
+            window.location.href = '/admin';
+          }
         } catch (error: any) {
           console.error('Error signing in:', error);
           toast.error(error.message || 'Erro ao fazer login');
@@ -80,15 +79,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           const hashedPassword = hashPassword(password);
 
-          // Create auth user first
-          const { error: authError } = await supabase.auth.signUp({
-            email: email.toLowerCase(),
-            password: hashedPassword,
-          });
-
-          if (authError) throw authError;
-
-          const { data, error } = await supabase
+          const { data: user, error } = await supabase
             .from('users')
             .insert([
               {
@@ -106,8 +97,9 @@ export const useAuthStore = create<AuthState>()(
 
           if (error) throw error;
 
-          set({ user: data });
+          set({ user });
           toast.success('Cadastro realizado com sucesso!');
+          window.location.href = '/profile';
         } catch (error: any) {
           console.error('Error signing up:', error);
           toast.error(error.message || 'Erro ao criar conta');
@@ -116,15 +108,11 @@ export const useAuthStore = create<AuthState>()(
           set({ loading: false });
         }
       },
-      signOut: async () => {
-        try {
-          await supabase.auth.signOut();
-          set({ user: null });
-          toast.success('Sessão encerrada');
-        } catch (error) {
-          console.error('Error signing out:', error);
-          toast.error('Erro ao encerrar sessão');
-        }
+      signOut: () => {
+        set({ user: null });
+        localStorage.removeItem('auth-storage');
+        window.location.href = '/';
+        toast.success('Sessão encerrada');
       },
       updateUser: (user: User) => {
         set({ user });
@@ -133,9 +121,6 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        user: state.user
-      })
     }
   )
 );

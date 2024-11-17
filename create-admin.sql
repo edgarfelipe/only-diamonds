@@ -1,4 +1,4 @@
--- Create admin user with hashed password (admin123)
+-- Create admin user with hashed password (88449596)
 INSERT INTO users (
   email,
   senha,
@@ -9,7 +9,7 @@ INSERT INTO users (
   updated_at
 ) VALUES (
   'admin@onlydiamonds.com',
-  '7c4a8d09ca3762af61e59520943dc26494f8941b', -- Hashed version of 'admin123'
+  '0a3a0e4f516c47e5b10e848073c5f1c9', -- Hashed version of '88449596'
   'Admin',
   'admin',
   'approved',

@@ -7,6 +7,17 @@ import { useAuthStore } from '../store/authStore';
 import { useStore } from '../store/appStore';
 import toast from 'react-hot-toast';
 
+const COUNTRIES = [
+  { code: '55', name: 'Brasil 🇧🇷' },
+  { code: '351', name: 'Portugal 🇵🇹' },
+  { code: '34', name: 'Espanha 🇪🇸' },
+  { code: '39', name: 'Itália 🇮🇹' },
+  { code: '33', name: 'França 🇫🇷' },
+  { code: '44', name: 'Reino Unido 🇬🇧' },
+  { code: '49', name: 'Alemanha 🇩🇪' },
+  { code: '1', name: 'Estados Unidos 🇺🇸' }
+];
+
 interface FemaleRegistrationProps {
   onBack: () => void;
 }
@@ -16,6 +27,7 @@ interface RegistrationForm {
   email: string;
   senha: string;
   idade: string;
+  countryCode: string;
   whatsapp: string;
   localizacao: string;
   bio: string;
@@ -31,6 +43,7 @@ const initialForm: RegistrationForm = {
   email: '',
   senha: '',
   idade: '',
+  countryCode: '55',
   whatsapp: '',
   localizacao: '',
   bio: '',
@@ -123,7 +136,7 @@ export default function FemaleRegistration({ onBack }: FemaleRegistrationProps) 
             senha: hashPassword(form.senha),
             nome: form.nome,
             idade: form.idade,
-            whatsapp: form.whatsapp,
+            whatsapp: `${form.countryCode}${form.whatsapp.replace(/\D/g, '')}`,
             localizacao: form.localizacao,
             bio: form.bio,
             altura: form.altura,
@@ -328,14 +341,27 @@ export default function FemaleRegistration({ onBack }: FemaleRegistrationProps) 
               <label className="block text-sm font-medium text-gold-400 mb-1">
                 WhatsApp
               </label>
-              <input
-                type="tel"
-                required
-                value={form.whatsapp}
-                onChange={e => setForm({ ...form, whatsapp: e.target.value })}
-                className="input-luxury"
-                placeholder="+XX (XX) XXXXX-XXXX"
-              />
+              <div className="flex gap-2">
+                <select
+                  value={form.countryCode}
+                  onChange={(e) => setForm({ ...form, countryCode: e.target.value })}
+                  className="input-luxury w-40"
+                >
+                  {COUNTRIES.map(country => (
+                    <option key={country.code} value={country.code}>
+                      {country.name} (+{country.code})
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="tel"
+                  required
+                  value={form.whatsapp}
+                  onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+                  className="input-luxury flex-1"
+                  placeholder="(XX) XXXXX-XXXX"
+                />
+              </div>
             </div>
 
             <div>
