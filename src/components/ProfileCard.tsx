@@ -1,9 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Heart, Star, Phone, Play } from 'lucide-react';
+import React, { useState } from 'react';
+import { Phone, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getPublicUrl } from '../lib/supabase';
-import { useAuthStore } from '../store/authStore';
-import { useInteractionStore } from '../store/interactionStore';
-import toast from 'react-hot-toast';
 import ImageViewer from './ImageViewer';
 import VideoPlayer from './VideoPlayer';
 import ImageProtection from './ImageProtection';
@@ -23,7 +20,6 @@ interface ProfileCardProps {
   idiomas?: string[];
   atende?: string;
   horario?: string;
-  distance?: string;
   onLike: () => void;
   onPass: () => void;
   onPrevious: () => void;
@@ -53,51 +49,10 @@ export default function ProfileCard({
   hasPrevious,
 }: ProfileCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
-  const [isFavorited, setIsFavorited] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
-  const { user } = useAuthStore();
-  const { likeProfile, unlikeProfile, favoriteProfile, unfavoriteProfile, checkIfLiked, checkIfFavorited } = useInteractionStore();
 
   const imageUrl = foto_perfil ? getPublicUrl('only-diamonds', foto_perfil) : null;
-
-  useEffect(() => {
-    if (user?.id) {
-      checkIfLiked(id, user.id).then(setIsLiked);
-      checkIfFavorited(id, user.id).then(setIsFavorited);
-    }
-  }, [id, user?.id]);
-
-  const handleLike = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      if (user?.id) {
-        await likeProfile(id, user.id);
-        setIsLiked(true);
-      }
-      onLike();
-    } catch (error) {
-      console.error('Error handling like:', error);
-    }
-  };
-
-  const handleFavorite = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      if (user?.id) {
-        if (isFavorited) {
-          await unfavoriteProfile(id, user.id);
-          setIsFavorited(false);
-        } else {
-          await favoriteProfile(id, user.id);
-          setIsFavorited(true);
-        }
-      }
-    } catch (error) {
-      console.error('Error handling favorite:', error);
-    }
-  };
 
   const handleWhatsAppClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -132,30 +87,26 @@ export default function ProfileCard({
               </h2>
               
               {localizacao && (
-                <p className="text-white/80 flex items-center gap-1 mt-1">
+                <p className="text-white/80 mt-1">
                   {localizacao}
                 </p>
               )}
 
-              {/* Action buttons */}
-              <div className="flex justify-between mt-4">
-                <button
-                  onClick={handleFavorite}
-                  className={`p-3 rounded-full ${
-                    isFavorited ? 'bg-gold-400 text-luxury-950' : 'bg-white/10 text-white'
-                  } hover:bg-gold-400 hover:text-luxury-950 transition`}
-                >
-                  <Star className="w-6 h-6" />
-                </button>
-
-                <button
-                  onClick={handleLike}
-                  className={`p-3 rounded-full ${
-                    isLiked ? 'bg-gold-400 text-luxury-950' : 'bg-white/10 text-white'
-                  } hover:bg-gold-400 hover:text-luxury-950 transition`}
-                >
-                  <Heart className="w-6 h-6" />
-                </button>
+              {/* Navigation and WhatsApp buttons */}
+              <div className="flex justify-between items-center mt-4">
+                {hasPrevious ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPrevious();
+                    }}
+                    className="p-3 rounded-full bg-white/10 text-white hover:bg-gold-400 hover:text-luxury-950 transition"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                ) : (
+                  <div className="w-12" /> {/* Spacer */}
+                )}
 
                 <button
                   onClick={handleWhatsAppClick}
@@ -163,6 +114,20 @@ export default function ProfileCard({
                 >
                   <Phone className="w-6 h-6" />
                 </button>
+
+                {hasMore ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onLike();
+                    }}
+                    className="p-3 rounded-full bg-white/10 text-white hover:bg-gold-400 hover:text-luxury-950 transition"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                ) : (
+                  <div className="w-12" /> {/* Spacer */}
+                )}
               </div>
             </div>
           </div>
@@ -177,31 +142,31 @@ export default function ProfileCard({
               {/* Basic Info */}
               <div className="space-y-4">
                 {altura && (
-                  <div className="flex items-center gap-2 text-luxury-200">
+                  <div className="text-luxury-200">
                     <span>Altura: {altura}</span>
                   </div>
                 )}
 
                 {medidas && (
-                  <div className="flex items-center gap-2 text-luxury-200">
+                  <div className="text-luxury-200">
                     <span>Medidas: {medidas}</span>
                   </div>
                 )}
 
                 {atende && (
-                  <div className="flex items-center gap-2 text-luxury-200">
+                  <div className="text-luxury-200">
                     <span>Atende em: {atende}</span>
                   </div>
                 )}
 
                 {horario && (
-                  <div className="flex items-center gap-2 text-luxury-200">
+                  <div className="text-luxury-200">
                     <span>Horário: {horario}</span>
                   </div>
                 )}
 
                 {idiomas.length > 0 && (
-                  <div className="flex items-center gap-2 text-luxury-200">
+                  <div className="text-luxury-200">
                     <span>Idiomas: {idiomas.join(', ')}</span>
                   </div>
                 )}
@@ -267,7 +232,7 @@ export default function ProfileCard({
                             preload="metadata"
                           />
                           <div className="absolute inset-0 bg-black/50 flex items-center justify-center group-hover:bg-black/30 transition">
-                            <Play className="w-12 h-12 text-white group-hover:scale-110 transition" />
+                            <Phone className="w-12 h-12 text-white group-hover:scale-110 transition" />
                           </div>
                         </div>
                       );
