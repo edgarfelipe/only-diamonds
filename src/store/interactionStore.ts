@@ -1,13 +1,14 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import { useNotificationStore } from './notificationStore';
 
 interface InteractionState {
-  likeProfile: (profileId: string, userId?: string) => Promise<void>;
+  likeProfile: (profileId: string, userId?: string, modelName?: string, modelPhone?: string) => Promise<void>;
   unlikeProfile: (profileId: string, userId: string) => Promise<void>;
-  favoriteProfile: (profileId: string, userId: string) => Promise<void>;
+  favoriteProfile: (profileId: string, userId: string, modelName?: string, modelPhone?: string) => Promise<void>;
   unfavoriteProfile: (profileId: string, userId: string) => Promise<void>;
-  addProfileView: (profileId: string, userId?: string) => Promise<void>;
+  addProfileView: (profileId: string, userId?: string, modelName?: string, modelPhone?: string) => Promise<void>;
   getLikes: (profileId: string) => Promise<number>;
   getFavorites: (profileId: string) => Promise<number>;
   getViews: (profileId: string) => Promise<number>;
@@ -16,7 +17,7 @@ interface InteractionState {
 }
 
 export const useInteractionStore = create<InteractionState>((set) => ({
-  likeProfile: async (profileId: string, userId?: string) => {
+  likeProfile: async (profileId: string, userId?: string, modelName?: string, modelPhone?: string) => {
     try {
       if (userId) {
         const { data: existingLike } = await supabase
@@ -41,6 +42,17 @@ export const useInteractionStore = create<InteractionState>((set) => ({
           ]);
 
         if (error) throw error;
+        
+        // Send notification
+        if (modelName && modelPhone) {
+          await useNotificationStore.getState().sendNotification({
+            type: 'like',
+            modelName,
+            modelPhone,
+            userName: userId
+          });
+        }
+
         toast.success('Perfil curtido!');
       }
     } catch (error: any) {
@@ -67,7 +79,7 @@ export const useInteractionStore = create<InteractionState>((set) => ({
     }
   },
 
-  favoriteProfile: async (profileId: string, userId: string) => {
+  favoriteProfile: async (profileId: string, userId: string, modelName?: string, modelPhone?: string) => {
     try {
       const { error } = await supabase
         .from('favorites')
@@ -79,6 +91,17 @@ export const useInteractionStore = create<InteractionState>((set) => ({
         ]);
 
       if (error) throw error;
+
+      // Send notification
+      if (modelName && modelPhone) {
+        await useNotificationStore.getState().sendNotification({
+          type: 'favorite',
+          modelName,
+          modelPhone,
+          userName: userId
+        });
+      }
+
       toast.success('Adicionado aos favoritos!');
     } catch (error) {
       console.error('Error favoriting profile:', error);
@@ -104,7 +127,7 @@ export const useInteractionStore = create<InteractionState>((set) => ({
     }
   },
 
-  addProfileView: async (profileId: string, userId?: string) => {
+  addProfileView: async (profileId: string, userId?: string, modelName?: string, modelPhone?: string) => {
     try {
       const { error } = await supabase
         .from('profile_views')
@@ -117,6 +140,16 @@ export const useInteractionStore = create<InteractionState>((set) => ({
         ]);
 
       if (error) throw error;
+
+      // Send notification
+      if (modelName && modelPhone) {
+        await useNotificationStore.getState().sendNotification({
+          type: 'view',
+          modelName,
+          modelPhone,
+          userName: userId
+        });
+      }
     } catch (error) {
       console.error('Error adding profile view:', error);
     }
