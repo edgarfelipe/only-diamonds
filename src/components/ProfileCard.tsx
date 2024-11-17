@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, TouchEvent } from 'react';
 import { Phone, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getPublicUrl } from '../lib/supabase';
 import ImageViewer from './ImageViewer';
@@ -52,6 +52,8 @@ export default function ProfileCard({
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+
   const imageUrl = foto_perfil ? getPublicUrl('only-diamonds', foto_perfil) : null;
 
   const handleWhatsAppClick = (e: React.MouseEvent) => {
@@ -61,8 +63,29 @@ export default function ProfileCard({
     }
   };
 
+  const handleTouchStart = (e: TouchEvent) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: TouchEvent) => {
+    if (touchStart === null) return;
+
+    const touchEnd = e.changedTouches[0].clientX;
+    if (touchStart - touchEnd > 50) {
+      onLike(); // Deslizar para a esquerda (próximo perfil)
+    }
+    if (touchEnd - touchStart > 50) {
+      onPrevious(); // Deslizar para a direita (perfil anterior)
+    }
+    setTouchStart(null);
+  };
+
   return (
-    <div className="relative w-full max-w-sm mx-auto h-[70vh] rounded-2xl overflow-hidden shadow-2xl">
+    <div
+      className="relative w-full max-w-sm mx-auto h-[70vh] rounded-2xl overflow-hidden shadow-2xl"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <div
         className={`relative w-full h-full transition-transform duration-500 [transform-style:preserve-3d] ${
           isFlipped ? '[transform:rotateY(180deg)]' : ''
