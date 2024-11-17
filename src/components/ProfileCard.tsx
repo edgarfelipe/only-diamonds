@@ -105,7 +105,7 @@ export default function ProfileCard({
                     <ChevronLeft className="w-6 h-6" />
                   </button>
                 ) : (
-                  <div className="w-12" /> {/* Spacer */}
+                  <div className="w-12" />
                 )}
 
                 <button
@@ -126,7 +126,7 @@ export default function ProfileCard({
                     <ChevronRight className="w-6 h-6" />
                   </button>
                 ) : (
-                  <div className="w-12" /> {/* Spacer */}
+                  <div className="w-12" />
                 )}
               </div>
             </div>
